@@ -44,3 +44,18 @@ for i in sorted(data['Cluster_CAH'].unique()):
     cities_in_cluster = data.index[data['Cluster_CAH'] == i].tolist()
     print(f"Cluster {i}: {cities_in_cluster}")
 
+# q4
+
+Z_avg = linkage(data_scaled, method='average', metric='euclidean') 
+seuil_avg = 3.5
+labels_avg = fcluster(Z_avg, t=seuil_avg, criterion='distance')
+
+Coord = data_temperature.loc[:, ['Latitude', 'Longitude']].values
+plt.scatter(Coord[:, 1], Coord[:, 0], c=labels_avg, s=20, cmap='viridis')
+
+nom_ville = list(data_temperature.index)
+
+for i, txt in enumerate(nom_ville):
+    plt.annotate(txt, (Coord[i,1], Coord[i,0]))
+
+plt.show()
