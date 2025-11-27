@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from sklearn.preprocessing import scale
+from sklearn.cluster import KMeans
 
 data_temperature = pd.read_csv("temperatures.csv", sep=";", decimal=".", header=0, index_col=0)
 n = len(data_temperature)
@@ -59,3 +60,63 @@ for i, txt in enumerate(nom_ville):
     plt.annotate(txt, (Coord[i,1], Coord[i,0]))
 
 plt.show()
+
+# 2.3 
+# q1
+
+K_range = range(2, 10)
+inertias = []
+
+for k in K_range:
+    kmeans = KMeans(n_clusters=k, n_init=10)
+    kmeans.fit(data_scaled)
+    inertias.append(kmeans.inertia_)
+
+# q2
+
+plt.figure(figsize=(8,5))
+plt.plot(K_range, inertias, 'bo-')
+plt.xlabel("Nombre de clusters K")
+plt.ylabel("Inerties")
+plt.title("Règle du coude")
+plt.grid(True)
+plt.show()
+
+# q3
+
+K_optimal = 3
+kmeans_final = KMeans(n_clusters=K_optimal, n_init=10)
+kmeans_final.fit(data_scaled)
+
+data['Cluster_KMeans'] = kmeans_final.labels_
+
+Coord = data_temperature.loc[:, ['Latitude', 'Longitude']].values
+
+plt.figure(figsize=(8,8))
+plt.title(f"Partion KMeans (K={K_optimal}) sur carte")
+
+plt.scatter(Coord[:, 1], Coord[:, 0], c=kmeans_final.labels_, s=20, cmap='viridis')
+
+for i, txt in enumerate(data_temperature.index):
+    plt.annotate(txt, (Coord[i, 1], Coord[i, 0]))
+
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.grid(True)
+plt.show()
+
+# 2.4
+
+# q1
+
+# Utilisation de table de contingence
+
+comparison = pd.crosstab(
+    data['Cluster_CAH'],
+    data['Cluster_KMeans'],
+    rownames=['CAH Cluster'],
+    colnames=['KMeans Cluster']
+)
+
+print("Table de comparaison (CAH vs K-Means) :")
+print(comparison)
